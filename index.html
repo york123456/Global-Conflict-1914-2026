@@ -1,0 +1,259 @@
+
+<h2 class="sr-only">國際衝突牽連矩陣 1914–2026：各國直接參戰、間接支援與波及情況</h2>
+<style>
+.rbtn{background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:3px 9px;font-size:11px;cursor:pointer;color:var(--color-text-secondary);}
+.rbtn.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);}
+.rbtn:hover{background:var(--color-background-secondary);}
+.crow:hover>td:first-child{background:var(--color-background-secondary);}
+.crow>td{transition:background 0.1s;}
+.mcell{width:24px;height:20px;display:block;border-radius:2px;}
+.mcell:hover{outline:2px solid var(--color-text-primary);outline-offset:-1px;opacity:1!important;}
+</style>
+
+<div style="display:flex;gap:10px;padding:0.75rem 0 0.75rem;flex-wrap:wrap;">
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 14px;flex:1;min-width:100px;">
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px;">衝突總計</div>
+    <div style="font-size:22px;font-weight:500;">20</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 14px;flex:1;min-width:100px;">
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px;">牽連國家</div>
+    <div style="font-size:22px;font-weight:500;">29</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 14px;flex:1;min-width:100px;">
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px;">時間跨度</div>
+    <div style="font-size:22px;font-weight:500;">112年</div>
+  </div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 14px;flex:2;min-width:200px;display:flex;align-items:center;gap:14px;">
+    <span style="font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:12px;background:#D85A30;border-radius:2px;"></span>直接參戰</span>
+    <span style="font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:12px;background:#BA7517;border-radius:2px;opacity:0.85;"></span>間接支援</span>
+    <span style="font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:12px;background:#378ADD;border-radius:2px;opacity:0.7;"></span>波及牽連</span>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;flex-wrap:wrap;gap:8px;">
+  <span style="font-size:12px;color:var(--color-text-secondary);">點擊國家列查看詳細傷亡</span>
+  <div id="rf" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+</div>
+
+<div style="overflow-x:auto;padding-bottom:4px;">
+  <table id="matrix" style="border-collapse:collapse;font-size:12px;"></table>
+</div>
+
+<div id="detail" style="display:none;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;margin-top:0.75rem;font-size:12px;"></div>
+
+<script>
+const C=[
+  {id:'ww1',name:'第一次世界大戰',short:'WWI',years:'1914–18',start:1914},
+  {id:'sjw',name:'第二次中日戰爭',short:'中日戰爭',years:'1937–45',start:1937},
+  {id:'ww2',name:'第二次世界大戰',short:'WWII',years:'1939–45',start:1939},
+  {id:'tst',name:'台海衝突',short:'台海衝突',years:'1949–',start:1949},
+  {id:'kor',name:'朝鮮戰爭',short:'韓戰',years:'1950–53',start:1950},
+  {id:'vie',name:'越南戰爭',short:'越戰',years:'1955–75',start:1955},
+  {id:'sue',name:'蘇伊士危機',short:'蘇伊士',years:'1956',start:1956},
+  {id:'cub',name:'古巴危機',short:'古巴危機',years:'1962',start:1962},
+  {id:'cin',name:'中印衝突',short:'中印衝突',years:'1962–',start:1962},
+  {id:'ykw',name:'贖罪日戰爭',short:'贖罪日',years:'1973',start:1973},
+  {id:'iri',name:'兩伊戰爭',short:'兩伊戰爭',years:'1980–88',start:1980},
+  {id:'gwf',name:'波斯灣戰爭',short:'波灣戰爭',years:'1990–91',start:1990},
+  {id:'vuz',name:'美委衝突',short:'美委衝突',years:'1999–26',start:1999},
+  {id:'cjp',name:'中日衝突',short:'中日衝突',years:'2010–',start:2010},
+  {id:'cph',name:'中菲衝突',short:'中菲衝突',years:'2012–',start:2012},
+  {id:'ukr',name:'烏俄戰爭',short:'烏俄戰爭',years:'2014–',start:2014},
+  {id:'ckr',name:'中韓衝突',short:'中韓衝突',years:'2016–',start:2016},
+  {id:'gaz',name:'以巴衝突',short:'以巴衝突',years:'2023–',start:2023},
+  {id:'iis',name:'以伊戰爭',short:'以伊戰爭',years:'2024–',start:2024},
+  {id:'tca',name:'泰柬衝突',short:'泰柬衝突',years:'2025–26',start:2025},
+];
+
+const countries=[
+  {name:'中國',region:'東亞',inv:{
+    sjw:{r:'d',c:'約1,500–2,000萬人死亡'},ww2:{r:'d',c:'約1,500–1,800萬死亡'},
+    tst:{r:'d',c:'主要對峙方'},kor:{r:'d',c:'約18–40萬人陣亡'},
+    vie:{r:'s',c:'數千人（後勤防空）'},cin:{r:'d',c:'4人陣亡（2020）'},
+    cjp:{r:'d',c:'東海主權爭議'},cph:{r:'d',c:'南海主權爭議'},
+    ckr:{r:'d',c:'薩德政治衝突'},ukr:{r:'s',c:'維持俄羅斯經貿'},
+  }},
+  {name:'日本',region:'東亞',inv:{
+    ww1:{r:'d',c:'少量傷亡'},sjw:{r:'d',c:'約130–200萬軍人陣亡'},
+    ww2:{r:'d',c:'約260–300萬死亡'},tst:{r:'a',c:'第一島鏈安全關聯'},
+    cjp:{r:'d',c:'東海主權爭議'},
+  }},
+  {name:'韓國',region:'東亞',inv:{
+    kor:{r:'d',c:'約13–15萬軍人陣亡，平民100萬'},
+    vie:{r:'d',c:'約5千人陣亡'},ckr:{r:'d',c:'薩德部署'},
+  }},
+  {name:'北韓',region:'東亞',inv:{
+    kor:{r:'d',c:'約20–40萬軍人陣亡，平民150–250萬'},
+    ukr:{r:'s',c:'武器供應俄羅斯'},
+  }},
+  {name:'台灣',region:'東亞',inv:{
+    tst:{r:'d',c:'主要對峙方'},vie:{r:'s',c:'非作戰技術支援'},
+    cjp:{r:'a',c:'地緣核心焦點'},
+  }},
+  {name:'美國',region:'美洲',inv:{
+    ww1:{r:'d',c:'約11萬死亡'},ww2:{r:'d',c:'約40萬死亡'},
+    kor:{r:'d',c:'約3.3–3.6萬人陣亡'},sue:{r:'s',c:'外交施壓，迫英法撤軍'},
+    vie:{r:'d',c:'約5.8萬人陣亡'},ykw:{r:'s',c:'軍援以色列'},
+    iri:{r:'s',c:'情報支援伊拉克'},gwf:{r:'d',c:'近300人陣亡'},
+    cub:{r:'d',c:'1名飛行員陣亡'},vuz:{r:'d',c:'發動突襲，抓捕馬杜洛'},
+    ukr:{r:'s',c:'最大軍援國'},gaz:{r:'s',c:'軍援以色列'},
+    iis:{r:'d',c:'13人殉職'},tst:{r:'a',c:'台灣關係法潛在介入'},
+    cjp:{r:'a',c:'美日安保牽涉'},
+  }},
+  {name:'委內瑞拉',region:'美洲',inv:{
+    vuz:{r:'d',c:'數十人傷亡，政權遭推翻'},
+  }},
+  {name:'古巴',region:'美洲',inv:{
+    cub:{r:'d',c:'飛彈基地所在'},vuz:{r:'s',c:'古巴人員陣亡'},
+  }},
+  {name:'俄羅斯/蘇聯',region:'歐洲',inv:{
+    ww1:{r:'d',c:'約170萬軍人陣亡'},ww2:{r:'d',c:'約2,600–2,700萬死亡'},
+    kor:{r:'s',c:'秘密空軍與物資支援'},sue:{r:'s',c:'威脅英法，支持埃及'},
+    vie:{r:'s',c:'武器支援北越'},ykw:{r:'s',c:'軍援埃及、敘利亞'},
+    iri:{r:'s',c:'主要武器供應國'},cub:{r:'d',c:'在古巴部署飛彈'},
+    ukr:{r:'d',c:'約30–40萬陣亡，120萬傷亡'},
+  }},
+  {name:'英國',region:'歐洲',inv:{
+    ww1:{r:'d',c:'約90–100萬軍人陣亡'},ww2:{r:'d',c:'約30–40萬死亡'},
+    kor:{r:'d',c:'聯合國軍成員'},sue:{r:'d',c:'16–22人死亡'},
+    gwf:{r:'d',c:'聯軍成員'},ukr:{r:'s',c:'武器援助'},
+  }},
+  {name:'法國',region:'歐洲',inv:{
+    ww1:{r:'d',c:'約130–140萬軍人陣亡'},ww2:{r:'d',c:'約30–40萬死亡'},
+    sue:{r:'d',c:'約10人死亡'},gwf:{r:'d',c:'聯軍成員'},
+  }},
+  {name:'德國',region:'歐洲',inv:{
+    ww1:{r:'d',c:'約170–200萬軍人陣亡'},sjw:{r:'s',c:'早期軍事顧問（國民政府）'},
+    ww2:{r:'d',c:'約800萬死亡'},gwf:{r:'s',c:'巨額資金支援聯軍'},
+    ukr:{r:'s',c:'武器援助烏克蘭'},
+  }},
+  {name:'波蘭',region:'歐洲',inv:{
+    ww2:{r:'a',c:'約600–630萬死亡（最大受害國之一）'},
+    ukr:{r:'s',c:'難民收容，軍援關鍵國'},
+  }},
+  {name:'烏克蘭',region:'歐洲',inv:{
+    ukr:{r:'d',c:'約10萬陣亡，60萬傷亡'},
+  }},
+  {name:'奧匈帝國',region:'歐洲',inv:{
+    ww1:{r:'d',c:'約120–150萬軍人陣亡'},
+  }},
+  {name:'以色列',region:'中東',inv:{
+    sue:{r:'d',c:'172人死亡'},ykw:{r:'d',c:'約2,800–3,000軍人陣亡'},
+    gwf:{r:'a',c:'遭飛毛腿飛彈攻擊'},gaz:{r:'d',c:'約1,200人死亡'},
+    iis:{r:'d',c:'十餘人死亡'},
+  }},
+  {name:'巴勒斯坦',region:'中東',inv:{
+    gaz:{r:'d',c:'逾72,000人死亡，17.2萬受傷'},
+  }},
+  {name:'伊朗',region:'中東',inv:{
+    iri:{r:'d',c:'約50–65萬人死亡'},gaz:{r:'s',c:'資助哈瑪斯、真主黨'},
+    iis:{r:'d',c:'數百人傷亡，核設施被毀'},ukr:{r:'s',c:'無人機飛彈供俄'},
+  }},
+  {name:'伊拉克',region:'中東',inv:{
+    iri:{r:'d',c:'約50–65萬人死亡'},gwf:{r:'d',c:'約2–5萬軍人陣亡'},
+  }},
+  {name:'埃及',region:'中東',inv:{
+    sue:{r:'d',c:'約1,650–3,000軍人死亡'},ykw:{r:'d',c:'約8,500–20,000軍人陣亡'},
+  }},
+  {name:'敘利亞',region:'中東',inv:{
+    ykw:{r:'d',c:'聯合埃及攻擊以色列'},gaz:{r:'s',c:'抵抗軸心'},
+  }},
+  {name:'沙烏地阿拉伯',region:'中東',inv:{
+    ykw:{r:'s',c:'石油禁運'},iri:{r:'s',c:'資金支援伊拉克'},
+    gwf:{r:'d',c:'聯軍成員'},iis:{r:'a',c:'基地遭伊朗空襲'},
+  }},
+  {name:'科威特',region:'中東',inv:{
+    iri:{r:'s',c:'資金支援伊拉克'},gwf:{r:'d',c:'數千人陣亡，全境被佔領'},
+  }},
+  {name:'鄂圖曼/土耳其',region:'中東',inv:{
+    ww1:{r:'d',c:'約70–80萬軍人陣亡'},kor:{r:'d',c:'聯合國軍成員'},
+  }},
+  {name:'印度',region:'南亞',inv:{
+    ww1:{r:'s',c:'英帝國殖民地'},ww2:{r:'s',c:'英帝國殖民地'},
+    cin:{r:'d',c:'20人陣亡（2020），數千人傷亡（1962）'},
+  }},
+  {name:'越南',region:'東南亞',inv:{
+    vie:{r:'d',c:'軍人70–140萬，平民100–200萬死亡'},
+  }},
+  {name:'菲律賓',region:'東南亞',inv:{
+    kor:{r:'d',c:'聯合國軍成員'},vie:{r:'d',c:'自由世界盟邦'},
+    cph:{r:'d',c:'數人受傷（最嚴重2024年斷指）'},
+  }},
+  {name:'泰國',region:'東南亞',inv:{
+    kor:{r:'d',c:'聯合國軍成員'},vie:{r:'d',c:'自由世界盟邦'},
+    tca:{r:'d',c:'主要交戰方'},
+  }},
+  {name:'柬埔寨',region:'東南亞',inv:{
+    vie:{r:'a',c:'戰火外溢，赤柬崛起'},tca:{r:'d',c:'主要交戰方'},
+  }},
+];
+
+const regionOrder=['東亞','歐洲','中東','美洲','東南亞','南亞'];
+let curRegion='全部';
+
+function renderTable(){
+  const filtered=curRegion==='全部'?[...countries]:countries.filter(c=>c.region===curRegion);
+  filtered.sort((a,b)=>regionOrder.indexOf(a.region)-regionOrder.indexOf(b.region)||a.name.localeCompare(b.name,'zh'));
+  const t=document.getElementById('matrix');
+  let h='<thead><tr><th style="min-width:100px;padding:0 8px 4px;font-size:11px;font-weight:500;text-align:left;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:bottom;">國家 / 衝突</th>';
+  C.forEach(c=>{
+    h+=`<th style="vertical-align:bottom;padding:0;border-bottom:0.5px solid var(--color-border-tertiary);"><div style="writing-mode:vertical-lr;transform:rotate(180deg);white-space:nowrap;height:120px;display:flex;align-items:flex-start;padding:4px 4px 8px;gap:2px;"><span style="font-size:11px;font-weight:500;color:var(--color-text-primary);">${c.short}</span><span style="font-size:9px;color:var(--color-text-tertiary);">${c.years}</span></div></th>`;
+  });
+  h+='</tr></thead><tbody>';
+  let lastR='';
+  filtered.forEach(country=>{
+    if(country.region!==lastR){
+      h+=`<tr><td colspan="${C.length+1}" style="padding:6px 8px 2px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);background:var(--color-background-tertiary);border-top:0.5px solid var(--color-border-tertiary);letter-spacing:0.05em;">${country.region}</td></tr>`;
+      lastR=country.region;
+    }
+    const cnt=Object.keys(country.inv).length;
+    h+=`<tr class="crow" onclick="showDetail('${country.name}')" style="cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary);">`;
+    h+=`<td style="padding:2px 8px;font-size:12px;white-space:nowrap;color:var(--color-text-primary);">${country.name}<span style="font-size:10px;color:var(--color-text-tertiary);margin-left:4px;">${cnt}</span></td>`;
+    C.forEach(c=>{
+      const inv=country.inv[c.id];
+      let bg='';
+      if(inv){bg=inv.r==='d'?'background:#D85A30;':inv.r==='s'?'background:#BA7517;opacity:0.8;':'background:#378ADD;opacity:0.65;';}
+      const tip=inv?`${country.name} × ${c.name}（${c.years}）\n角色：${inv.r==='d'?'直接參戰':inv.r==='s'?'間接支援':'波及牽連'}\n傷亡：${inv.c}`:'';
+      h+=`<td style="padding:1px;" title="${tip}"><div class="mcell" style="${bg}"></div></td>`;
+    });
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  t.innerHTML=h;
+}
+
+function showDetail(n){
+  const country=countries.find(c=>c.name===n);
+  if(!country)return;
+  const d=document.getElementById('detail');
+  const roleMap={d:'直接參戰',s:'間接支援',a:'波及牽連'};
+  const colorMap={d:'#D85A30',s:'#BA7517',a:'#378ADD'};
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:14px;font-weight:500;">${country.name}</span><span style="font-size:11px;color:var(--color-text-secondary);">${country.region} · ${Object.keys(country.inv).length} 場衝突</span><button onclick="document.getElementById('detail').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:18px;line-height:1;">×</button></div>`;
+  h+='<div style="display:grid;gap:5px;">';
+  Object.keys(country.inv).forEach(cid=>{
+    const conf=C.find(x=>x.id===cid);
+    const inv=country.inv[cid];
+    h+=`<div style="display:grid;grid-template-columns:70px 90px 80px 1fr;gap:8px;align-items:center;padding:6px 10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);">`;
+    h+=`<span style="font-size:10px;font-weight:500;color:${colorMap[inv.r]};">${roleMap[inv.r]}</span>`;
+    h+=`<span style="font-size:12px;font-weight:500;">${conf.short}</span>`;
+    h+=`<span style="font-size:10px;color:var(--color-text-tertiary);">${conf.years}</span>`;
+    h+=`<span style="font-size:11px;color:var(--color-text-primary);">${inv.c}</span>`;
+    h+='</div>';
+  });
+  h+='</div>';
+  d.innerHTML=h;
+  d.style.display='block';
+}
+
+const regions=['全部',...regionOrder];
+const rf=document.getElementById('rf');
+regions.forEach(r=>{
+  const b=document.createElement('button');
+  b.className='rbtn'+(r==='全部'?' active':'');
+  b.textContent=r;
+  b.onclick=()=>{curRegion=r;document.querySelectorAll('.rbtn').forEach(x=>x.classList.toggle('active',x.textContent===r));renderTable();};
+  rf.appendChild(b);
+});
+
+renderTable();
+</script>
